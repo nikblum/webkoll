@@ -2,11 +2,11 @@
 
 const express = require('express');
 const puppeteer = require('puppeteer');
-const {TimeoutError} = puppeteer.errors;
+const {TimeoutError} = puppeteer;
 const {URL} = require('url');
 const log4js = require('log4js');
 const tldjs = require('tldjs');
-const ip = require('ip');
+const ipaddr = require('ipaddr.js');
 
 log4js.configure({
   appenders: {
@@ -61,7 +61,7 @@ app.get('/', async (request, response) => {
   };
 
   try {
-    const context = await browser.createIncognitoBrowserContext();
+    const context = await browser.createBrowserContext();
     const page = await context.newPage();
     const client = await page.target().createCDPSession();
 
@@ -73,11 +73,20 @@ app.get('/', async (request, response) => {
       page.on('request', (interceptedRequest) => {
         const parsedTld = tldjs.parse(interceptedRequest.url());
         const parsedUrl = new URL(interceptedRequest.url());
+
+        let ipIsPrivate = false;
+        if (ipaddr.isValid(parsedTld.hostname)) {
+          const addr = ipaddr.parse(parsedTld.hostname);
+          if (['private', 'loopback', 'linkLocal', 'broadcast', 'reserved'].includes(addr.range())) {
+            ipIsPrivate = true;
+          }
+        }
+
         // Unless explicitly allowed via validate_urls = false, abort requests to
         // private IPs or to domains with non-existent TLDs, or to ports other
         // than 80 or 443
         if (
-          (parsedTld.isIp && ip.isPrivate(parsedTld.hostname)) ||
+          (parsedTld.isIp && ipIsPrivate) ||
           (!parsedTld.isIp && !parsedTld.tldExists) ||
           (parsedUrl.port !== '' && ! ['80', '443'].includes(parsedUrl.port))
         ) {
