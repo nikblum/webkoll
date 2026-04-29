@@ -1,4 +1,4 @@
-FROM node:20-slim
+FROM node:18-slim
 
 # Dipendenze di sistema per Chromium headless
 RUN apt-get update && apt-get install -y --no-install-recommends \
