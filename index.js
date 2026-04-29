@@ -56,7 +56,10 @@ app.get('/', async (request, response) => {
   logger.info('Trying ' + url);
 
   const timeout = request.query.timeout || 25000;
-  const browser = await puppeteer.launch({headless: true});
+ const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
   const viewport = {
     width: 1920,
     height: 1080,
