@@ -26,10 +26,17 @@ const PORT = process.env.PORT || 8100;
 const app = express();
 
 function urldecode(url) {
+  if (!url) return '';
   return decodeURIComponent(url.replace(/\+/g, ' '));
 }
 
 app.get('/', async (request, response) => {
+   if (!req.query.fetch_url) {
+    return res.status(200).json({
+      ok: true,
+      message: 'webbkoll-backend running. Use ?fetch_url=https://example.com'
+    });
+  }
   const url = urldecode(request.query.fetch_url);
   const validateUrl = request.query.validate_url ? request.query.validate_url !== 'false' : true;
 
